@@ -1,7 +1,7 @@
 const express = require("express");
-const mongojs = require("mongojs");
 const logger = require("morgan");
 const path = require("path");
+const mongoose = require("mongoose");
 
 const app = express();
 
@@ -15,11 +15,24 @@ app.use(express.static("public"));
 const databaseUrl = "workout";
 const collections = ["workouts"];
 
-const db = mongojs(databaseUrl, collections);
+//mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workout", { useNewUrlParser: true });
+mongoose.connect(
+    process.env.MONGODB_URI || 'mongodb://localhost/workout',
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false
+    }
+  );
 
-db.on("error", error => {
-    console.log("Database Error:", error);
-});
+const db = require("./models");
+
+//const db = mongojs(databaseUrl, collections);
+
+// db.on("error", error => {
+//     console.log("Database Error:", error);
+// });
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname + "./public/index.html"));
@@ -35,7 +48,7 @@ app.get("/stats", (req, res) => {
 
 app.post("/api/workouts", (req, res) => {
 
-    db.workouts.insert(
+    db.Workout.create(
         {
             day: new Date()
         },
@@ -51,7 +64,7 @@ app.post("/api/workouts", (req, res) => {
 
 app.get("/api/workouts", (req, res) => {
 
-    db.workouts.aggregate([{
+    db.Workout.aggregate([{
         $addFields: {
             totalDuration: { $sum: "$exercises.duration" }
         }
@@ -66,7 +79,7 @@ app.get("/api/workouts", (req, res) => {
 });
 
 app.get("/api/workouts/range", (req, res) => {
-    db.workouts.aggregate([{
+    db.Workout.aggregate([{
         $addFields: {
             totalDuration: { $sum: "$exercises.duration" }
         }
@@ -80,9 +93,9 @@ app.get("/api/workouts/range", (req, res) => {
 });
 
 app.get("/find/:id", (req, res) => {
-    db.workouts.findOne(
+    db.Workout.findOne(
         {
-            _id: mongojs.ObjectId(req.params.id)
+            _id: mongoose.Types.ObjectId(req.params.id)
         },
         (error, data) => {
             if (error) {
@@ -95,19 +108,26 @@ app.get("/find/:id", (req, res) => {
 });
 
 app.put("/api/workouts/:id", (req, res) => {
-    db.workouts.update(
-        {
-            _id: mongojs.ObjectId(req.params.id)
-        },
+    // console.log(req.params.id);
+    // console.log(req.body);
+    // console.log(mongoose.Types.ObjectId(req.params.id));
+    db.Workout.findByIdAndUpdate(
+        
+        req.params.id  ,
         {
             $push: {
                 exercises: req.body
             }
+            
+        }, {
+            upsert: true
         },
         (error, data) => {
             if (error) {
+                console.log(error);
                 res.send(error);
             } else {
+                console.log(data)
                 res.send(data);
             }
         }
@@ -115,9 +135,9 @@ app.put("/api/workouts/:id", (req, res) => {
 });
 
 app.delete("/delete/:id", (req, res) => {
-    db.workouts.remove(
+    db.Workout.remove(
         {
-            _id: mongojs.ObjectID(req.params.id)
+            _id: mongoose.Types.ObjectId(req.params.id)
         },
         (error, data) => {
             if (error) {
@@ -130,7 +150,7 @@ app.delete("/delete/:id", (req, res) => {
 });
 
 app.delete("/clearall", (req, res) => {
-    db.workouts.remove({}, (error, response) => {
+    db.Workout.remove({}, (error, response) => {
         if (error) {
             res.send(error);
         } else {
