@@ -12,8 +12,10 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
+const uri = "mongodb+srv://root:altug2606@cluster0.r4lvn.mongodb.net/workout?retryWrites=true&w=majority";
+
 mongoose.connect(
-    process.env.MONGODB_URI || 'mongodb://localhost/workout',
+    uri,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -21,6 +23,15 @@ mongoose.connect(
       useFindAndModify: false
     }
   );
+// mongoose.connect(
+//     process.env.MONGODB_URI || 'mongodb://localhost/workout',
+//     {
+//       useNewUrlParser: true,
+//       useUnifiedTopology: true,
+//       useCreateIndex: true,
+//       useFindAndModify: false
+//     }
+//   );
 
 const db = require("./models");
 
