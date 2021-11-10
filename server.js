@@ -12,19 +12,10 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
-const uri = "mongodb+srv://root:altug2606@cluster0.r4lvn.mongodb.net/workout?retryWrites=true&w=majority";
+// const uri = "mongodb+srv://root:altug2606@cluster0.r4lvn.mongodb.net/workout?retryWrites=true&w=majority";
 
-mongoose.connect(
-    uri,
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-      useFindAndModify: false
-    }
-  );
 // mongoose.connect(
-//     process.env.MONGODB_URI || 'mongodb://localhost/workout',
+//     uri,
 //     {
 //       useNewUrlParser: true,
 //       useUnifiedTopology: true,
@@ -32,6 +23,15 @@ mongoose.connect(
 //       useFindAndModify: false
 //     }
 //   );
+mongoose.connect(
+    process.env.MONGODB_URI || 'mongodb://localhost/workout',
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false
+    }
+  );
 
 const db = require("./models");
 
@@ -160,6 +160,6 @@ app.delete("/clearall", (req, res) => {
     });
 });
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log("App running on port 3000!");
 });
